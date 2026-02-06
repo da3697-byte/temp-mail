@@ -6,126 +6,76 @@
 
 <style>
 :root {
-  --bg: #020617;
-  --card: #0f172a;
-  --accent: #38bdf8;
-  --accent2: #2563eb;
-  --text: #e5e7eb;
-  --muted: #94a3b8;
+  --bg:#020617;
+  --card:#0f172a;
+  --accent:#22d3ee;
+  --accent2:#2563eb;
+  --text:#e5e7eb;
+  --muted:#94a3b8;
 }
-
-* {
-  box-sizing: border-box;
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,sans-serif;
+  background:radial-gradient(circle at top,#020617,#000);
+  color:var(--text)
 }
-
-body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
-  background: radial-gradient(circle at top, #020617, #000);
-  color: var(--text);
+header{
+  text-align:center;
+  padding:20px;
+  font-size:26px;
+  font-weight:800
 }
-
-header {
-  padding: 20px;
-  text-align: center;
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: 1px;
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:20px
 }
-
-.container {
-  max-width: 900px;
-  margin: auto;
-  padding: 20px;
+.card{
+  background:var(--card);
+  border-radius:16px;
+  padding:20px;
+  box-shadow:0 0 40px #000
 }
-
-.card {
-  background: var(--card);
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 0 40px #000;
+.email{
+  background:#020617;
+  padding:14px;
+  border-radius:12px;
+  font-size:18px;
+  word-break:break-all
 }
-
-.email-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
+.row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center
 }
-
-.email {
-  flex: 1;
-  font-size: 18px;
-  background: #020617;
-  padding: 12px 16px;
-  border-radius: 10px;
-  word-break: break-all;
+button{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border:none;
+  color:#fff;
+  padding:10px 14px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:600
 }
-
-button {
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  border: none;
-  color: white;
-  padding: 10px 14px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: 600;
+button.secondary{
+  background:#020617;
+  border:1px solid #1e293b
 }
-
-button.secondary {
-  background: #020617;
-  border: 1px solid #1e293b;
+button:hover{opacity:.9}
+.inbox{margin-top:20px}
+.message{
+  background:#020617;
+  border-radius:12px;
+  padding:14px;
+  margin-bottom:10px;
+  cursor:pointer
 }
-
-button:hover {
-  opacity: 0.9;
-}
-
-.controls {
-  margin-top: 12px;
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.inbox {
-  margin-top: 20px;
-}
-
-.message {
-  background: #020617;
-  border-radius: 12px;
-  padding: 14px;
-  margin-bottom: 10px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.message:hover {
-  background: #020617cc;
-}
-
-.from {
-  font-weight: bold;
-}
-
-.subject {
-  color: var(--muted);
-  font-size: 14px;
-}
-
-.empty {
-  text-align: center;
-  color: var(--muted);
-  margin-top: 30px;
-}
-
-.footer {
-  text-align: center;
-  margin-top: 30px;
-  color: var(--muted);
-  font-size: 13px;
-}
+.message:hover{background:#020617cc}
+.subject{color:var(--muted);font-size:14px}
+.empty{text-align:center;color:var(--muted);margin:30px}
+.footer{text-align:center;color:var(--muted);font-size:13px;margin-top:30px}
 </style>
 </head>
 
@@ -134,133 +84,133 @@ button:hover {
 <header>📬 TEMP MAIL</header>
 
 <div class="container">
-
   <div class="card">
-    <div class="email-row">
+    <div class="row">
       <div class="email" id="email">Loading…</div>
       <button onclick="copyEmail()">Copy</button>
     </div>
 
-    <div class="controls">
+    <div class="row" style="margin-top:12px">
       <button onclick="newEmail()">New Email</button>
       <button class="secondary" onclick="loadInbox()">Refresh</button>
-      <button class="secondary" id="autoBtn" onclick="toggleAutoRefresh()">
+      <button class="secondary" id="autoBtn" onclick="toggleAuto()">
         Auto Refresh: OFF
       </button>
     </div>
   </div>
 
-  <div class="inbox card" id="inbox"></div>
+  <div class="card inbox" id="inbox"></div>
 
   <div class="footer">
-    Emails auto-delete • No signup • Frontend only
+    Powered by mail.tm • Better deliverability • Auto-delete emails
   </div>
 </div>
 
 <script>
-let login = "";
-let domain = "";
-let autoRefreshInterval = null;
+let token = "";
+let accountId = "";
+let address = "";
+let autoTimer = null;
 
-function randomString(len) {
-  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-  return Array.from({ length: len }, () =>
-    chars[Math.floor(Math.random() * chars.length)]
-  ).join("");
+function rand(len){
+  const c="abcdefghijklmnopqrstuvwxyz0123456789";
+  return Array.from({length:len},()=>c[Math.floor(Math.random()*c.length)]).join("");
 }
 
-function saveEmail() {
-  localStorage.setItem("tempMailLogin", login);
-  localStorage.setItem("tempMailDomain", domain);
-}
+async function newEmail(){
+  localStorage.clear();
+  const domains = await fetch("https://api.mail.tm/domains").then(r=>r.json());
+  const domain = domains["hydra:member"][0].domain;
+  address = `${rand(10)}@${domain}`;
+  const password = rand(12);
 
-function loadSavedEmail() {
-  const l = localStorage.getItem("tempMailLogin");
-  const d = localStorage.getItem("tempMailDomain");
+  await fetch("https://api.mail.tm/accounts",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({address,password})
+  });
 
-  if (l && d) {
-    login = l;
-    domain = d;
-    updateEmailUI();
-    loadInbox();
-    return true;
-  }
-  return false;
-}
+  const login = await fetch("https://api.mail.tm/token",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({address,password})
+  }).then(r=>r.json());
 
-function updateEmailUI() {
-  document.getElementById("email").textContent = `${login}@${domain}`;
-}
+  token = login.token;
+  localStorage.setItem("tm_address",address);
+  localStorage.setItem("tm_token",token);
 
-function newEmail() {
-  login = randomString(10);
-  domain = "1secmail.com";
-  saveEmail();
-  updateEmailUI();
+  document.getElementById("email").textContent = address;
   document.getElementById("inbox").innerHTML =
     "<div class='empty'>Inbox empty</div>";
 }
 
-async function loadInbox() {
-  const inbox = document.getElementById("inbox");
-  inbox.innerHTML = "<div class='empty'>Loading…</div>";
+async function loadInbox(){
+  if(!token) return;
+  const inbox=document.getElementById("inbox");
+  inbox.innerHTML="<div class='empty'>Loading…</div>";
 
-  const res = await fetch(
-    `https://www.1secmail.com/api/v1/?action=getMessages&login=${login}&domain=${domain}`
-  );
-  const data = await res.json();
+  const data = await fetch("https://api.mail.tm/messages",{
+    headers:{Authorization:`Bearer ${token}`}
+  }).then(r=>r.json());
 
-  if (!data.length) {
-    inbox.innerHTML = "<div class='empty'>No messages yet</div>";
+  if(!data["hydra:member"].length){
+    inbox.innerHTML="<div class='empty'>No messages yet</div>";
     return;
   }
 
-  inbox.innerHTML = "";
-  data.forEach(msg => {
-    const div = document.createElement("div");
-    div.className = "message";
-    div.innerHTML = `
-      <div class="from">${msg.from}</div>
-      <div class="subject">${msg.subject || "(no subject)"}</div>
+  inbox.innerHTML="";
+  data["hydra:member"].forEach(msg=>{
+    const div=document.createElement("div");
+    div.className="message";
+    div.innerHTML=`
+      <strong>${msg.from.address}</strong>
+      <div class="subject">${msg.subject||"(no subject)"}</div>
     `;
-    div.onclick = () => openMessage(msg.id);
+    div.onclick=()=>openMsg(msg.id);
     inbox.appendChild(div);
   });
 }
 
-async function openMessage(id) {
-  const res = await fetch(
-    `https://www.1secmail.com/api/v1/?action=readMessage&login=${login}&domain=${domain}&id=${id}`
-  );
-  const msg = await res.json();
+async function openMsg(id){
+  const msg = await fetch(`https://api.mail.tm/messages/${id}`,{
+    headers:{Authorization:`Bearer ${token}`}
+  }).then(r=>r.json());
 
   alert(
-    `From: ${msg.from}\n\nSubject: ${msg.subject}\n\n${msg.textBody || "No content"}`
+    `From: ${msg.from.address}\n\nSubject: ${msg.subject}\n\n${msg.text || "No content"}`
   );
 }
 
-function copyEmail() {
-  navigator.clipboard.writeText(`${login}@${domain}`);
+function copyEmail(){
+  navigator.clipboard.writeText(address);
 }
 
-function toggleAutoRefresh() {
-  const btn = document.getElementById("autoBtn");
-
-  if (autoRefreshInterval) {
-    clearInterval(autoRefreshInterval);
-    autoRefreshInterval = null;
-    btn.textContent = "Auto Refresh: OFF";
-  } else {
+function toggleAuto(){
+  const btn=document.getElementById("autoBtn");
+  if(autoTimer){
+    clearInterval(autoTimer);
+    autoTimer=null;
+    btn.textContent="Auto Refresh: OFF";
+  }else{
     loadInbox();
-    autoRefreshInterval = setInterval(loadInbox, 30000);
-    btn.textContent = "Auto Refresh: ON (30s)";
+    autoTimer=setInterval(loadInbox,30000);
+    btn.textContent="Auto Refresh: ON (30s)";
   }
 }
 
-// INIT
-if (!loadSavedEmail()) {
-  newEmail();
-}
+(function init(){
+  const savedA=localStorage.getItem("tm_address");
+  const savedT=localStorage.getItem("tm_token");
+  if(savedA && savedT){
+    address=savedA;
+    token=savedT;
+    document.getElementById("email").textContent=address;
+    loadInbox();
+  }else{
+    newEmail();
+  }
+})();
 </script>
 
 </body>
